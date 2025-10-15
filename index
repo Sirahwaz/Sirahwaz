@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماسح إشارات العملات المشفرة بالذكاء الاصطناعي</title>
+    <style>
+        /* (تم الاحتفاظ بالستايلات السابقة مع تعديل بسيط لعرض الحاوية الرئيسية) */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --border-color: #dee2e6;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --modal-backdrop: rgba(0, 0, 0, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --hover-shadow-color: rgba(0, 0, 0, 0.12);
+            --ai-highlight: #d4edda;
+            --source-bg: #e2e3e5;
+            --button-hover-primary: #0056b3;
+            --button-hover-secondary: #5a6268;
+            --button-hover-warning: #e0a800;
+            --button-hover-danger: #c82333;
+            --shitcoin-highlight: #f8d7da;
+            --shitcoin-border: #f5c6cb;
+            --shitcoin-text: #721c24;
+            --pump-highlight: #fff3cd;
+            --pump-border: #ffeeba;
+            --pump-text: #856404;
+            --dump-highlight: #f8d7da;
+            --dump-border: #f5c6cb;
+            --dump-text: #721c24;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            user-select: none;
+            overflow: hidden;
+            text-align: right; 
+        }
+
+        .app-container {
+            width: min(90vw, 1200px);
+            max-height: 90vh;
+            background-color: var(--card-background);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            padding: clamp(1rem, 4vw, 2rem);
+            display: flex; /* تم تغيير هذا من 'none' إلى 'flex' ليعمل تلقائيًا */
+            flex-direction: column;
+            gap: clamp(0.5rem, 2vw, 1.5rem);
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            margin-bottom: clamp(0.5rem, 2vw, 1rem);
+        }
+
+        .signal-header {
+            flex-direction: row-reverse;
+        }
+
+        .signal-actions {
+            justify-content: flex-start;
+        }
+
+        .modal-header {
+            flex-direction: row-reverse;
+        }
+
+        .modal-footer {
+            justify-content: flex-start;
+        }
+
+        .source-links ul {
+            direction: rtl; 
+        }
+
+        .source-links a {
+            flex-direction: row-reverse;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="app-container" id="appContainer">
+        <h1>ماسح إشارات العملات المشفرة بالذكاء الاصطناعي 🤖</h1>
+
+        <div class="coin-selection">
+            <button class="coin-button active" data-coin="all">الكل 🌟</button>
+            <button class="coin-button" data-coin="BTC">BTC 🚀</button>
+            <button class="coin-button" data-coin="ETH">ETH 💡</button>
+            <button class="coin-button" data-coin="SOL">SOL ☀️</button>
+            <button class="coin-button" data-coin="ADA">ADA 💜</button>
+            <button class="coin-button" data-coin="XRP">XRP 💧</button>
+            <button class="coin-button" data-coin="DOGE">DOGE 🐶</button>
+            <button class="coin-button" data-coin="SHIB">SHIB 🦊</button>
+            <button class="coin-button" data-coin="BNB">BNB 🥞</button>
+            <button class="coin-button" data-coin="DOT">DOT ⭕</button>
+            <button class="coin-button" data-coin="MATIC">MATIC 💎</button>
+            <button class="coin-button" data-coin="PEPE">PEPE 🐸</button>
+            <button class="coin-button" data-coin="FLOKI">FLOKI 🐺</button>
+            <button class="coin-button" data-coin="BONK">BONK 🐶</button>
+            <button class="coin-button" data-coin="WIF">WIF 🎩</button>
+            <button class="coin-button" data-coin="BOME">BOME 🚀</button>
+            <button class="coin-button" data-coin="MEW">MEW 🐈</button>
+            <button class="coin-button" data-coin="DOG">DOG 🐕</button>
+            <button class="coin-button" data-coin="CAT">CAT 🐈</button>
+            <button class="coin-button" data-coin="MEME">MEME 🎭</button>
+        </div>
+
+        <div class="filter-buttons">
+            <button class="filter-button active" data-filter="all">جميع الإشارات</button>
+            <button class="filter-button" data-filter="shitcoin">عملات الميم 💩</button>
+            <button class="filter-button" data-filter="pump">ارتفاعات 🔥</button>
+            <button class="filter-button" data-filter="dump">انخفاضات 📉</button>
+        </div>
+
+        <div class="signal-list" id="signalList">
+            </div>
+        <div class="no-signals" id="noSignalsMessage">
+            الذكاء الاصطناعي يمسح الإشارات... يرجى الانتظار. ⏳
+        </div>
+
+        <div class="ai-analysis-section">
+            <h2>تحليل الذكاء الاصطناعي 🧠</h2>
+            <p>
+                يقوم الذكاء الاصطناعي المتقدم لدينا بمسح مستمر للأسواق الرئيسية، بما في ذلك CoinGecko و CoinMarketCap ومنصات التداول الكبرى. يحلل أنماط الارتفاع/الانخفاض المفاجئ، ومعنويات السوق، والبيانات الحية لتحديد فرص التداول ذات الإمكانات العالية.
+                <span class="ai-status">الحالة: تهيئة المسح...</span>
+            </p>
+        </div>
+
+        <div class="shitcoin-options">
+            <h2>تنبيهات عملات الميم (Shitcoin) 💩</h2>
+            <p>
+                نماذج الذكاء الاصطناعي المتخصصة تراقب العملات ذات القيمة السوقية المنخفضة ورموز الميم لاحتمال حدوث ارتفاعات انفجارية أو انخفاضات مفاجئة. هذه الإشارات عالية المخاطر وعالية المكافأة. استخدمها بحذر شديد! ⚠️
+            </p>
+        </div>
+
+        <div class="pump-dump-options pump-options">
+            <h2>ارتفاعات محتملة (Pump) 🔥</h2>
+            <p>
+                الذكاء الاصطناعي يحدد العملات المشفرة التي تظهر زخماً صعودياً قوياً وإمكانية لتحقيق مكاسب كبيرة. راقب هذه العملات عن كثب لاغتنام فرص الاختراق.
+            </p>
+        </div>
+
+        <div class="pump-dump-options dump-options">
+            <h2>انخفاضات محتملة (Dump) 📉</h2>
+            <p>
+                الذكاء الاصطناعي يكشف عن العملات المشفرة التي تظهر علامات انخفاض سريع. كن على دراية بهذه العملات لاحتمال فرص البيع على المكشوف (Shorting) أو لتجنب خسائر كبيرة.
+            </p>
+        </div>
+
+        <div class="source-links">
+            <h2>مصادر السوق 🌐</h2>
+            <ul>
+                <li><a href="https://www.coingecko.com/en" target="_blank">CoinGecko 🦎</a></li>
+                <li><a href="https://coinmarketcap.com/" target="_blank">CoinMarketCap 📊</a></li>
+                <li><a href="https://www.binance.com/en" target="_blank">Binance 🏦</a></li>
+                <li><a href="https://www.kraken.com/" target="_blank">Kraken 🐙</a></li>
+                <li><a href="https://www.bybit.com/" target="_blank">Bybit 🚀</a></li>
+                <li><a href="https://www.okx.com/" target="_blank">OKX 🌟</a></li>
+                <li><a href="https://www.gate.io/" target="_blank">Gate.io 🚪</a></li>
+                <li><a href="https://www.kucoin.com/" target="_blank">KuCoin 🥳</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                تعديل إشارة الذكاء الاصطناعي ✏️
+                <span class="close-button" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editSignalId">
+                <div class="input-group">
+                    <label for="editCoinSymbol">رمز العملة</label>
+                    <input type="text" id="editCoinSymbol" placeholder="مثال: BTC, ETH">
+                </div>
+                <div class="input-group">
+                    <label for="editSignalType">نوع الإشارة</label>
+                    <select id="editSignalType">
+                        <option value="buy">شراء 🟢</option>
+                        <option value="sell">بيع 🔴</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="editEntryPrice">سعر الدخول</label>
+                    <input type="number" id="editEntryPrice" placeholder="مثال: 30000.50" step="0.000001">
+                </div>
+                <div class="input-group">
+                    <label for="editTargetPrice">سعر الهدف</label>
+                    <input type="number" id="editTargetPrice" placeholder="مثال: 31000.00" step="0.000001">
+                </div>
+                <div class="input-group">
+                    <label for="editStopLoss">وقف الخسارة</label>
+                    <input type="number" id="editStopLoss" placeholder="مثال: 29500.00" step="0.000001">
+                </div>
+                <div class="input-group">
+                    <label for="editLeverage">الرافعة المالية</label>
+                    <input type="number" id="editLeverage" placeholder="مثال: 5x" step="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-button" onclick="closeModal()">إلغاء ❌</button>
+                <button class="save-button" onclick="saveEditedSignal()">حفظ ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APP_STORAGE_KEY = 'aiCryptoSignalScanner';
+        let signals = [];
+        let editingSignalId = null;
+        let currentCoinFilter = 'all'; 
+        let currentFilter = 'all'; 
+
+        const signalListDiv = document.getElementById('signalList');
+        const noSignalsMessage = document.getElementById('noSignalsMessage');
+        const aiStatusSpan = document.querySelector('.ai-analysis-section .ai-status');
+        const coinButtons = document.querySelectorAll('.coin-button');
+        const filterButtons = document.querySelectorAll('.filter-button');
+
+        const editModal = document.getElementById('editModal');
+        const editSignalIdInput = document.getElementById('editSignalId');
+        const editCoinSymbolInput = document.getElementById('editCoinSymbol');
+        const editSignalTypeSelect = document.getElementById('editSignalType');
+        const editEntryPriceInput = document.getElementById('editEntryPrice');
+        const editTargetPriceInput = document.getElementById('editTargetPrice');
+        const editStopLossInput = document.getElementById('editStopLoss');
+        const editLeverageInput = document.getElementById('editLeverage');
+        
+        // **وظيفة تنسيق الأرقام**
+        function formatPrice(price) {
+            if (price < 0.1 && price > 0) {
+                return price.toFixed(8).replace(/\.?0+$/, ''); 
+            }
+            return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+        }
+
+        function saveData() {
+            localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(signals));
+        }
+
+        function loadData() {
+            const savedSignals = localStorage.getItem(APP_STORAGE_KEY);
+            if (savedSignals) {
+                signals = JSON.parse(savedSignals);
+            }
+            renderSignals();
+        }
+
+        function renderSignals() {
+            signalListDiv.innerHTML = '';
+            const filteredSignals = signals.filter(signal => {
+                const coinMatch = currentCoinFilter === 'all' || signal.coinSymbol === currentCoinFilter;
+                let filterMatch = false;
+
+                if (currentFilter === 'all') {
+                    filterMatch = true;
+                } else if (currentFilter === 'shitcoin') {
+                    filterMatch = signal.type === 'shitcoin';
+                } else if (currentFilter === 'pump') {
+                    filterMatch = signal.type === 'pump';
+                } else if (currentFilter === 'dump') {
+                    filterMatch = signal.type === 'dump';
+                }
+                return coinMatch && filterMatch;
+            }).sort((a, b) => b.id - a.id); 
+
+            if (filteredSignals.length === 0) {
+                signalListDiv.style.display = 'none';
+                noSignalsMessage.style.display = 'block';
+                let message = `الذكاء الاصطناعي يمسح الإشارات لـ ${currentCoinFilter === 'all' ? 'جميع العملات' : currentCoinFilter}... يرجى الانتظار. ⏳`;
+                if (currentFilter !== 'all') {
+                    const filterName = currentFilter === 'shitcoin' ? 'عملات الميم' : (currentFilter === 'pump' ? 'ارتفاعات' : 'انخفاضات');
+                    message = `لم يتم العثور على إشارات ${filterName} لـ ${currentCoinFilter === 'all' ? 'أي عملة' : currentCoinFilter}. الذكاء الاصطناعي يمسح... ⏳`;
+                }
+                noSignalsMessage.textContent = message;
+            } else {
+                signalListDiv.style.display = 'grid';
+                noSignalsMessage.style.display = 'none';
+                filteredSignals.forEach(signal => {
+                    const card = document.createElement('div');
+                    card.classList.add('signal-card');
+                    card.classList.add(signal.type); 
+                    
+                    const signalTypeText = signal.signalType === 'buy' ? 'شراء' : 'بيع';
+                    const signalTypeClass = signal.signalType;
+
+                    let typeExtraInfo = '';
+                    if (signal.type === 'shitcoin') {
+                        typeExtraInfo = '<div class="signal-details" style="color: var(--shitcoin-text); font-weight: bold;">تنبيه عملة ميم! 💩 (مخاطرة عالية)</div>';
+                    } else if (signal.type === 'pump') {
+                        typeExtraInfo = '<div class="signal-details" style="color: var(--pump-text); font-weight: bold;">ارتفاع محتمل! 🔥</div>';
+                    } else if (signal.type === 'dump') {
+                        typeExtraInfo = '<div class="signal-details" style="color: var(--dump-text); font-weight: bold;">انخفاض محتمل! 📉</div>';
+                    }
+
+                    card.innerHTML = `
+                        <div class="signal-header">
+                            ${signal.coinSymbol}
+                            <span class="signal-type ${signalTypeClass}">${signalTypeText}</span>
+                        </div>
+                        <div class="signal-details">
+                            الدخول: <span>${formatPrice(signal.entryPrice)}</span>
+                        </div>
+                        <div class="signal-details">
+                            الهدف: <span>${formatPrice(signal.targetPrice)}</span>
+                        </div>
+                        <div class="signal-details">
+                            وقف الخسارة: <span>${formatPrice(signal.stopLoss)}</span>
+                        </div>
+                        <div class="signal-details">
+                            الرافعة المالية: <span>${signal.leverage}x</span>
+                        </div>
+                        ${typeExtraInfo}
+                        <div class="signal-actions">
+                            <button class="action-button edit" onclick="editSignal(${signal.id})">تعديل ✏️</button>
+                            <button class="action-button delete" onclick="deleteSignal(${signal.id})">حذف 🗑️</button>
+                        </div>
+                    `;
+                    signalListDiv.appendChild(card);
+                });
+            }
+        }
+
+        function editSignal(id) {
+            const signal = signals.find(s => s.id === id);
+            if (!signal) return;
+
+            editingSignalId = id;
+            editSignalIdInput.value = signal.id;
+            editCoinSymbolInput.value = signal.coinSymbol;
+            editSignalTypeSelect.value = signal.signalType;
+            editEntryPriceInput.value = signal.entryPrice.toFixed(8).replace(/\.?0+$/, ''); 
+            editTargetPriceInput.value = signal.targetPrice.toFixed(8).replace(/\.?0+$/, '');
+            editStopLossInput.value = signal.stopLoss.toFixed(8).replace(/\.?0+$/, '');
+            editLeverageInput.value = signal.leverage;
+
+            editModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function saveEditedSignal() {
+            const id = parseInt(editSignalIdInput.value);
+            const coinSymbol = editCoinSymbolInput.value.trim().toUpperCase();
+            const signalType = editSignalTypeSelect.value;
+            const entryPrice = parseFloat(editEntryPriceInput.value);
+            const targetPrice = parseFloat(editTargetPriceInput.value);
+            const stopLoss = parseFloat(editStopLossInput.value);
+            const leverage = parseInt(editLeverageInput.value);
+
+            if (!coinSymbol || isNaN(entryPrice) || isNaN(targetPrice) || isNaN(stopLoss) || isNaN(leverage)) {
+                alert('الرجاء ملء جميع الحقول بشكل صحيح.');
+                return;
+            }
+
+            const signalIndex = signals.findIndex(s => s.id === id);
+            if (signalIndex !== -1) {
+                signals[signalIndex] = {
+                    ...signals[signalIndex], 
+                    coinSymbol,
+                    signalType,
+                    entryPrice,
+                    targetPrice,
+                    stopLoss,
+                    leverage,
+                };
+                saveData();
+                renderSignals();
+                closeModal();
+            }
+        }
+
+        function deleteSignal(id) {
+            if (confirm('هل أنت متأكد أنك تريد حذف هذه الإشارة المولّدة بالذكاء الاصطناعي؟')) {
+                signals = signals.filter(s => s.id !== id);
+                saveData();
+                renderSignals();
+            }
+        }
+
+        function closeModal() {
+            editModal.style.display = 'none';
+            document.body.style.overflow = '';
+            editingSignalId = null;
+        }
+
+        function simulateAIScanning() {
+            const statuses = [
+                "مسح Legendary Crypto...",
+                "تحليل بيانات CoinGecko...",
+                "فحص اتجاهات CoinMarketCap...",
+                "مراقبة Binance و Kraken و Bybit...",
+                "تحديد أنماط الارتفاع/الانخفاض المفاجئ...",
+                "تقييم معنويات السوق...",
+                "مسح عملات الميم والعملات الجديدة...",
+                "حساب الأهداف المحتملة...",
+                "تم توليد إشارة الذكاء الاصطناعي! 🚀"
+            ];
+            let i = 0;
+            aiStatusSpan.textContent = statuses[i];
+            i++;
+
+            const intervalId = setInterval(() => {
+                aiStatusSpan.textContent = statuses[i % statuses.length];
+                if (i === statuses.length - 1) { 
+                    clearInterval(intervalId);
+                    generateRandomSignal();
+                    aiStatusSpan.textContent = "الحالة: جاهز. سيتم المسح مجدداً بعد 30 ثانية.";
+                    setTimeout(() => {
+                        i = 0; 
+                        simulateAIScanning();
+                    }, 30000); 
+                }
+                i++;
+            }, 6000); 
+        }
+
+        function generateRandomSignal() {
+            const coinSymbols = ["BTC", "ETH", "SOL", "ADA", "XRP", "DOGE", "SHIB", "BNB", "DOT", "MATIC", "PEPE", "FLOKI", "BONK", "WIF", "BOME", "MEW", "DOG", "CAT", "MEME", "AVAX", "LINK", "UNI", "LTC"];
+            const signalTypes = ["buy", "sell"];
+            const typeOptions = ['signal', 'signal', 'signal', 'shitcoin', 'pump', 'dump'];
+            
+            const randomSymbol = coinSymbols[Math.floor(
